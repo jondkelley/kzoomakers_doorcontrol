@@ -1,0 +1,25 @@
+version: '2'
+
+services:
+  doorcontrol:
+    restart: unless-stopped
+    environment:
+      - UPDATE_SECRET=changeme
+    build: .
+    container_name: doorcontrol
+    ports:
+      - 5002:5001
+    #volumes:
+    networks:
+      - makers_net
+    volumes:
+      - /etc/uhppoted:/etc/uhppoted
+    env_file:
+      - .env
+
+volumes:
+     app-volume:
+
+networks:
+  makers_net:
+    driver: bridge
