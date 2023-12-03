@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Events</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
+</head>
+
+{% set reason_codes = {
+    1: "SwipePass: Swipe",
+    5: "SwipeNOPass: Denied: PC Control",
+    6: "SwipeNOPass: Denied: No PRIVILEGE",
+    7: "SwipeNOPass: Denied: Wrong PASSWORD",
+    8: "SwipeNOPass: Denied: AntiBack",
+    9: "SwipeNOPass: Denied: More Cards",
+    10: "SwipeNOPass: Denied: First Card Open",
+    11: "SwipeNOPass: Denied: Door Set NC",
+    12: "SwipeNOPass: Denied: InterLock",
+    13: "SwipeNOPass: Denied: Limited Times",
+    15: "SwipeNOPass: Denied: Outside Member Hours",
+    18: "SwipeNOPass: Denied",
+    20: "ValidEvent: Push Button",
+    23: "ValidEvent: Door Open",
+    24: "ValidEvent: Door Closed",
+    25: "ValidEvent: Super Password Open Door",
+    28: "Warn: Controller Power On",
+    29: "Warn: Controller Reset",
+    31: "Warn: Push Button Invalid: Forced Lock",
+    32: "Warn: Push Button Invalid: Not On Line",
+    33: "Warn: Push Button Invalid: InterLock",
+    34: "Warn: Threat",
+    37: "Warn: Open too long",
+    38: "Warn: Forced Open",
+    39: "Warn: Fire",
+    40: "Warn: Forced Close",
+    41: "Warn: Guard Against Theft",
+    42: "Warn: 7*24Hour Zone",
+    43: "Warn: Emergency Call",
+    44: "RemoteOpen: Remote Open Door",
+    45: "RemoteOpen: Remote Open Door By USB Reader"
+} %}
+<body>
+    <div class="container mt-5">
+        <h1>Device Events</h1>
+        <table class="table" id="eventsTable">
+            <thead>
+                <tr>
+                    <th>Event ID</th>
+                    <th>Card#</th>
+                    <th>Door ID</th>
+                    <th>Event Type</th>
+                    <th>Access Granted</th>
+                    <th>Direction</th>
+                    <th>Timestamp</th>
+                    <th>Event Reason</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events['events'] %}
+                <tr>
+                    <td>{{ event['event-id'] }}</td>
+                    <td>{{ event['card-number'] }}</td>
+                    <td>{{ event['door-id'] }}</td>
+                    <td>{{ event['event-type'] }}</td>
+                    <td>{{ "Yes" if event['access-granted'] else "<span class=\"badge bg-danger\">DENIED</span>"|safe }}</td>
+                    <td>{{ event['direction'] }}</td>
+                    <td>{{ event['timestamp'] }}</td>
+                    <td>{{ reason_codes.get(event['event-reason'], event['event-reason']) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="container mt-4">
+        <div class="btn-group">
+            <a href="{{ url_for('doorctl.controller_manage', controller_id=controller_id) }}" class="btn btn-secondary active">
+                Back to controller
+            </a>
+        </div>
+    </div>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        $('.table').DataTable({
+            "order": [[6, 'desc']]  // start with sorting by the first column (Event ID) in descending order
+        });
+    });
+    </script>
+    <!-- Include Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha2/dist/js/bootstrap.min.js" integrity="sha384-B5gt1jrGC7Jh4AgTPSdUtOBvfO8sh+5z5n2x5c5l5p5L5f5r5d5u5g5l5i5D5m5E5a5x5P5B5v5i5O5F5h5T5T5H5a5E5u5M5H5x5f5l5l5A5b5v5Y5l5V5U5L5Q5h5L5g5N5f5D5O5L5E5/" crossorigin="anonymous"></script>
+</body>
+</html>

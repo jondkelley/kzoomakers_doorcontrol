@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Set Device Time</title>
+    <!-- Bootstrap 5 CSS CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha2/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Set Device Time</h1>
+
+        <!-- Display flash messages if any -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+               <div class="alert alert-{{ category }}" role="alert"> {{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="post">
+            <div class="mb-3">
+                <label for="datetime" class="form-label">Manually Enter Time (YYYY-MM-DD HH:MM:SS)</label>
+                <label for="datetime" class="form-label">(24 hour time)</label>
+                <input type="text" class="form-control" id="datetime" name="datetime" placeholder="YYYY-MM-DD HH:MM:SS" value="{{ current_datetime }}">
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="setToServerTime" name="setToServerTime">
+                <label class="form-check-label" for="setToServerTime">Sync to webserver instead <span id="serverTime">[Fetching server time...]</span></label>
+            </div>
+
+            <div class="mb-3 mt-4">
+                Current controller time: <span id="currentDeviceTime">{{ current_device_time }}</span>
+            </div>
+            <button type="submit" class="btn btn-primary">Set Time</button>
+        </form>
+
+    </div>
+    <div class="container mt-4">
+        <div class="btn-group">
+            <a href="{{ url_for('doorctl.controller_manage', controller_id=controller_id) }}" class="btn btn-secondary active">
+                Back to controller
+            </a>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS and Popper.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha2/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- JavaScript to set the default value to the current datetime and update server time -->
+    <script>// Function to update the server time
+
+        // Function to update the device time
+        function updateDeviceTime() {
+            const deviceTimeElement = document.getElementById('currentDeviceTime');
+            let deviceTimeParts = deviceTimeElement.textContent.trim().split(' ')[0].split('-').concat(deviceTimeElement.textContent.trim().split(' ')[1].split(':'));
+            
+            let deviceTime = new Date(deviceTimeParts[0], deviceTimeParts[1] - 1, deviceTimeParts[2], deviceTimeParts[3], deviceTimeParts[4], deviceTimeParts[5]);
+            deviceTime.setSeconds(deviceTime.getSeconds() + 1);
+
+            // Formatting the updated time
+            const formattedTime = deviceTime.getFullYear() + '-' +
+                                  String(deviceTime.getMonth() + 1).padStart(2, '0') + '-' +
+                                  String(deviceTime.getDate()).padStart(2, '0') + ' ' +
+                                  String(deviceTime.getHours()).padStart(2, '0') + ':' +
+                                  String(deviceTime.getMinutes()).padStart(2, '0') + ':' +
+                                  String(deviceTime.getSeconds()).padStart(2, '0');
+
+            // Update the displayed device time
+            deviceTimeElement.textContent = formattedTime + " EDT";
+        }
+
+        // Call the function to start updating the device time every second
+        setInterval(updateDeviceTime, 1000);
+
+        // Function to update the server time
+        function updateServerTime() {
+            const serverTimeElement = document.getElementById('serverTime');
+            const xhr = new XMLHttpRequest();
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    // Parse the server response as JSON
+                    const response = JSON.parse(xhr.responseText);
+                    const serverTime = new Date(response.server_time);
+                    const now = new Date();
+                    const timeDifference = now - serverTime;
+
+                    // Calculate hours, minutes, and seconds
+                    const hours = Math.floor(timeDifference / 3600000);
+                    const minutes = Math.floor((timeDifference % 3600000) / 60000);
+                    const seconds = Math.floor((timeDifference % 60000) / 1000);
+
+                    // Format the time as "YYYY-MM-DD HH:MM:SS"
+                    const formattedTime = serverTime.getFullYear() + '-' +
+                                        String(serverTime.getMonth() + 1).padStart(2, '0') + '-' +
+                                        String(serverTime.getDate()).padStart(2, '0') + ' ' +
+                                        String(serverTime.getHours()).padStart(2, '0') + ':' +
+                                        String(serverTime.getMinutes()).padStart(2, '0') + ':' +
+                                        String(serverTime.getSeconds()).padStart(2, '0');
+
+                    // Update the displayed time
+                    serverTimeElement.textContent = `[${formattedTime}]`;
+                }
+            };
+
+            xhr.open('GET', '/accesscontrol/ajax/get_server_time'); // Replace with the appropriate route to fetch server time
+            xhr.send();
+        }
+
+        // Call the function to start updating the server time every 5 seconds (5000 milliseconds)
+        setInterval(updateServerTime, 1000);
+
+        // Get the current date and time in the desired format
+        function getCurrentDatetime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+
+        // Set the default value of the datetime input field
+        document.addEventListener('DOMContentLoaded', function() {
+            const datetimeInput = document.getElementById('datetime');
+            datetimeInput.value = getCurrentDatetime();
+        });
+    </script>
+</body>
+</html>

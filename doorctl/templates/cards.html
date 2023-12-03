@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Management</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha2/dist/css/bootstrap.min.css">
+    <!-- Bootstrap Font Icon CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Card Management</h1>
+        <!-- Display flash messages if any -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+               <div class="alert alert-{{ category }}" role="alert"> {{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        <!-- Card List -->
+        <h2>Active Cards</h2>
+        <ul>
+            {% for card in card_data %}
+                <li><a href="{{ url_for('doorctl.get_card', controller_id=controller_id, card_number=card) }}">{{ card }}</a></li>
+            {% endfor %}
+        </ul>
+
+        <!-- Add Card Form -->
+        <h2>Add/Update Card</h2>
+        <form method="POST" action="{{ url_for('doorctl.add_card', controller_id=controller_id) }}">
+
+            <div class="row">
+
+                <div class="col">
+                    <div class="mb-3">
+                        <label for="card_number" class="form-label">Card Number:</label>
+                        <input type="text" name="card_number" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="mb-3">
+                        <label for="start_date" class="form-label">Start Date (yyyy-MM-dd):</label>
+                        <input type="text" name="start_date" class="form-control" required placeholder="yyyy-MM-dd"
+                               value="2000-01-01">
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="mb-3">
+                        <label for="end_date" class="form-label">End Date (yyyy-MM-dd):</label>
+                        <input type="text" name="end_date" class="form-control" required placeholder="yyyy-MM-dd"
+                               value="2099-01-01">
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="mb-3">
+                        <label for="pin" class="form-label">Keypad PIN (Optional):</label>
+                        <input type="text" name="pin" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                {% for doorid in door_states %}
+                <div class="col">
+                    <label for="doors" class="form-label">
+                            Door Relay {{ doorid }}:
+                    </label>
+                    <select name="doors" class="form-select" required>
+                        <option value="1">Deny</option>
+                        <option value="0">Allow</option>
+                        {% for profile in time_profiles_data.profiles %}
+                            <option value="{{ profile.id }}">Time Profile: {{ profile.id }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="row mt-3"> <!-- Add margin-top here -->
+                <div class="col">
+                    <button type="submit" class="btn btn-primary">Add Card</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Delete Card Form -->
+        <div class="row mt-3">
+            <h2>Delete Card</h2>
+            <form method="POST" action="{{ url_for('doorctl.delete_card', controller_id=controller_id) }}">
+                <div class="row mb-3">
+                    <div class="col-3">
+                        <label for="card_number" class="form-label">Card Number:</label>
+                        <input type="text" name="card_number" class="form-control" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <button type="submit" class="btn btn-danger">Delete Card</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="btn-group">
+            <a href="{{ url_for('doorctl.controller_manage', controller_id=controller_id) }}" class="btn btn-secondary active">
+                Back to controller
+            </a>
+        </div>
+    </div>
+    <!-- Include Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha2/dist/js/bootstrap.min.js" integrity="sha384-B5gt1jrGC7Jh4AgTPSdUtOBvfO8sh+5z5n2x5c5l5p5L5f5r5d5u5g5l5i5D5m5E5a5x5P5B5v5i5O5F5h5T5T5H5a5E5u5M5H5x5f5l5l5A5b5v5Y5l5V5U5L5Q5h5L5g5N5f5D5O5L5E5/" crossorigin="anonymous"></script>
+</body>
+</html>

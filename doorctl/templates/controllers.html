@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UHPPOTE Devices</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha2/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mt-5">List of Controllers</h1>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Device ID</th>
+                    <th>Device Type</th>
+                    <th>Ip Addr</th>
+                    <th>Timezone</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for device in devices %}
+                <tr>
+                    <td>{{ device['name'] }}</td>
+                    <td><a href="{{ url_for('doorctl.controller_manage', controller_id=device['device-id']) }}">{{ device['device-id'] }}</a></td>
+                    <td>{{ device['device-type'] }}</td>
+                    <td>{{ device['ipaddr'] }}</td>
+                    <td>{{ device['timezone'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+ 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.5.0/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

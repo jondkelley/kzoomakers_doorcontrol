@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Door Management</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha2/dist/css/bootstrap.min.css">
+    <!-- Bootstrap Font Icon CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Door Management</h1>
+        <!-- Display flash messages if any -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+               <div class="alert alert-{{ category }}" role="alert"> {{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        <!-- Card List -->
+   
+    <div class="container mt-5">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Door ID</th>
+                    <th>Door State</th>
+                    <th>Button State</th>
+                    <th>Door Delay</th>
+                    <th>Door Control</th>
+                    <th>Manage</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for door_id, door_state in device_status.status['door-states'].items() %}
+                {% set door_button = device_status.status['door-buttons'][door_id] %}
+                {% set door_details = door_info[door_id] if door_info else {} %}
+                <tr>
+                    <td>{{ door_id }}</td>
+                    <td>{{ 'Open' if door_state else 'Closed' }}</td>
+                    <td>{{ 'Pressed' if door_button else 'Not Pressed' }}</td>
+                    <td>{{ door_details['delay'] if 'delay' in door_details else 'N/A' }} seconds</td>
+                    <td>{{ door_details['control'] if 'control' in door_details else 'N/A' }}</td>
+                    <td> 
+                        <div class="mb-2"><strong>Set Door Control</strong></div>
+                        <a href="#" class="btn-sm btn btn-secondary active" onclick="setDoorControl('{{ controller_id }}', '{{ door_id }}', 'normally closed'); return false;">Normally Closed</a>
+                        <a href="#" class="btn-sm btn btn-secondary active" onclick="setDoorControl('{{ controller_id }}', '{{ door_id }}', 'normally open'); return false;">Normally Open</a>
+                        <a href="#" class="btn-sm btn btn-secondary active" onclick="setDoorControl('{{ controller_id }}', '{{ door_id }}', 'controlled'); return false;">Controlled</a>
+
+                        <div class="mb-2"><strong>Door Delay</strong></div>
+                        <a href="#" class="btn-sm btn btn-secondary active" onclick="promptForDelayAndSet('{{ controller_id }}', '{{ door_id }}')">
+                            Set Delay
+                        </a>
+
+                        <div class="mb-2"><strong>Door Command</strong></div>
+                        <form id="swipeForm" onsubmit="submitSwipeForm('{{ controller_id }}', '{{ door_id }}'); return false;">
+                            <div class="form-group">
+                                <label for="cardNumber">Card Number:</label>
+                                <input type="number" class="form-control" id="cardNumber" name="cardNumber" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">SWIPE</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="container mt-4">
+        <div class="btn-group">
+            <a href="{{ url_for('doorctl.controller_manage', controller_id=controller_id) }}" class="btn btn-secondary active">
+                Back to controller
+            </a>
+        </div>
+    </div>
+    <script>
+        function submitSwipeForm(controllerId, doorId) {
+            const cardNumber = document.getElementById("cardNumber").value;
+
+            fetch(`/accesscontrol/controller/${controllerId}/door/${doorId}/swipe`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    "card-number": cardNumber
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert("Error: " + data.message);
+                }
+            });
+        }
+        function promptForDelayAndSet(deviceId, door) {
+            const delayTime = prompt("Please enter the delay time in seconds:", "");
+            
+            if (delayTime === null) { // User clicked "Cancel"
+                return;
+            }
+
+            if (isNaN(delayTime) || delayTime < 0) {
+                alert("Please enter a valid number for delay.");
+                return;
+            }
+
+            setDoorDelay(deviceId, door, delayTime);
+        }
+        // @doorctl.route('/accesscontrol/controller/<int:controller_id>/<int:door>/door/delay', methods=['PUT'])
+        function setDoorDelay(deviceId, door, delayTime) {
+            fetch(`/accesscontrol/controller/${deviceId}/door/${door}/delay`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    delay: delayTime
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    // Here you can handle how you want to display the error
+                    alert("Error: " + data.error);
+                } else {
+                    location.reload(); // Refresh the page if you want to reflect changes or do something else
+                }
+            });
+        }
+
+        function setDoorControl(deviceId, door, controlState) {
+            fetch(`/accesscontrol/controller/${deviceId}/door/${door}/state`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    control: controlState
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    // Here you can handle how you want to display the error
+                    alert("Error: " + data.error);
+                } else {
+                    location.reload(); // Refresh the page if you want to reflect changes or do something else
+                }
+            });
+        }
+
+    </script>
+    <!-- Include Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha2/dist/js/bootstrap.min.js" integrity="sha384-B5gt1jrGC7Jh4AgTPSdUtOBvfO8sh+5z5n2x5c5l5p5L5f5r5d5u5g5l5i5D5m5E5a5x5P5B5v5i5O5F5h5T5T5H5a5E5u5M5H5x5f5l5l5A5b5v5Y5l5V5U5L5Q5h5L5g5N5f5D5O5L5E5/" crossorigin="anonymous"></script>
+</body>
+</html>

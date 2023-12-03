@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Information</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha2/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Device Information</h1>
+        <div class="row">
+            <div class="col-md-6">
+                <h2>Status</h2>
+                <ul class="list-group">
+                    <li class="list-group-item">Device ID: {{ device_status['device-id'] }}</li>
+                    <li class="list-group-item">System Datetime: {{ device_status['status']['system-datetime'] }}</li>
+                    <li class="list-group-item">System Error: {{ device_status['status']['system-error'] }}</li>
+                    <li class="list-group-item">Input State: {{ device_status['status']['input-state'] }}</li>
+                    <li class="list-group-item">Relay State: {{ device_status['status']['relay-state'] }}</li>
+                    <li class="list-group-item">Sequence ID: {{ device_status['status']['sequence-id'] }}</li>
+                    <li class="list-group-item">Special Info: {{ device_status['status']['special-info'] }}</li>
+                    <li class="list-group-item">Door States:
+                        <ul>
+                            {% for door_id, state in device_status['status']['door-states'].items() %}
+                                <li>Door {{ door_id }}: {{ 'Open' if state else 'Closed' }}</li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li class="list-group-item">Door Buttons:
+                        <ul>
+                            {% for door_id, state in device_status['status']['door-buttons'].items() %}
+                                <li>Door {{ door_id }}: {{ 'Pressed' if state else 'Not Pressed' }}</li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h2>Device Info</h2>
+                <ul class="list-group">
+                    <li class="list-group-item">Device Type: {{ device_info['device']['device-type'] }}</li>
+                    <li class="list-group-item">IP Address: {{ device_info['device']['ip-address'] }}</li>
+                    <li class="list-group-item">Subnet Mask: {{ device_info['device']['subnet-mask'] }}</li>
+                    <li class="list-group-item">Gateway Address: {{ device_info['device']['gateway-address'] }}</li>
+                    <li class="list-group-item">MAC Address: {{ device_info['device']['mac-address'] }}</li>
+                    <li class="list-group-item">Version: {{ device_info['device']['version'] }}</li>
+                    <li class="list-group-item">Date: {{ device_info['device']['date'] }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="btn-group">
+            <a href="{{ url_for('doorctl.device_events', controller_id=controller_id) }}" class="btn btn-primary active">
+                Controller Event Log
+            </a>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="btn-group">
+            <a href="{{ url_for('doorctl.controller_manage', controller_id=controller_id) }}" class="btn btn-secondary active">
+                Back to controller
+            </a>
+        </div>
+    </div>
+    <!-- Include Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha2/dist/js/bootstrap.min.js" integrity="sha384-B5gt1jrGC7Jh4AgTPSdUtOBvfO8sh+5z5n2x5c5l5p5L5f5r5d5u5g5l5i5D5m5E5a5x5P5B5v5i5O5F5h5T5T5H5a5E5u5M5H5x5f5l5l5A5b5v5Y5l5V5U5L5Q5h5L5g5N5f5D5O5L5E5/" crossorigin="anonymous"></script>
+</body>
+</html>
